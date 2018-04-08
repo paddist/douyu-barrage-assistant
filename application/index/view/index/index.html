@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>后台登录</title>
+<meta name="author" content="DeathGhost" />
+<link rel="stylesheet" type="text/css" href="{$Think.STATIC_PATH}css/style.css" />
+<style>
+body{height:100%;background:#16a085;overflow:hidden;}
+</style>
+<script src="{$Think.STATIC_PATH}js/jquery.js"></script>
+<script src="{$Think.STATIC_PATH}js/gt.js"></script>
+ <script src="{$Think.STATIC_PATH}js/Particleground.js"></script>
+
+ <script>
+$(document).ready(function() {
+  //粒子背景特效
+  $('body').particleground({
+    dotColor: '#5cbdaa',
+    lineColor: '#5cbdaa'
+  });
+  $('canvas').css({
+      'z-index' : '-1',
+      'position' : 'absolute'
+  });
+});
+</script>
+</head>
+<body>
+<dl class="admin_login">
+ <dt>
+  <strong>不明后台管理系统</strong>
+  <em>Management System</em>
+ </dt>
+ <form class="popup" action="http://www.manage.com/?s=gee/verifyloginservlet/run" method="post">
+ <dd class="user_icon">
+  <input type="text" placeholder="账号" class="login_txtbx"/>
+ </dd>
+ <dd class="pwd_icon">
+  <input type="password" placeholder="密码" class="login_txtbx"/>
+ </dd>
+ <div id='captcha-box'>
+  <div style="background-color: #5cbdaa;color: #ffffff;text-align: center;line-height: 40px;">加载验证码中，请稍后...</div>
+ </div>
+ <dd>
+  <input type="button" value="立即登录" class="submit_btn"/>
+ </dd>
+ </form>
+ <dd>
+  <p>© 2018-9999 Paddy 版权所有</p>
+  <p>(゜-゜)つロ 干杯~-bilibili</p>
+ </dd>
+</dl>
+</body>
+<script>
+    var handlerEmbed = function (captchaObj) {
+        $(".submit_btn").click(function (e) {
+            var validate = captchaObj.getValidate();
+            if (!validate) {
+                alert('请先完成验证！');
+                e.preventDefault();
+            }
+        });
+        // 将验证码加到id为captcha的元素里，同时会有三个input的值：geetest_challenge, geetest_validate, geetest_seccode
+
+        captchaObj.appendTo("#captcha-box");
+        captchaObj.onReady(function () {
+            $('#captcha-box').find('div').hide();
+            $('canvas').css('z-index', '0');
+        });
+        // 更多接口参考：http://www.geetest.com/install/sections/idx-client-sdk.html
+    };
+    $.ajax({
+        // 获取id，challenge，success（是否启用failback）
+        url: "/gee/startcaptchaservlet/run/" + (new Date()).getTime(), // 加随机数防止缓存
+        type: "get",
+        dataType: "json",
+        success: function (data) {
+            console.log(data);
+            // 使用initGeetest接口
+            // 参数1：配置参数
+            // 参数2：回调，回调的第一个参数验证码对象，之后可以使用它做appendTo之类的事件
+            initGeetest({
+                gt: data.gt,
+                challenge: data.challenge,
+                new_captcha: data.new_captcha,
+                product: "float", // 产品形式，包括：float，embed，popup。注意只对PC版验证码有效
+                offline: !data.success // 表示用户后台检测极验服务器是否宕机，一般不需要关注
+                // 更多配置参数请参见：http://www.geetest.com/install/sections/idx-client-sdk.html#config
+            }, handlerEmbed);
+        }
+    });
+</script>
+</html>
